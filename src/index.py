@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 import discord
+from discord.ext import commands
 
 load_dotenv()
 
@@ -9,23 +10,22 @@ botToken = os.environ.get("bot-token")
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+bot = commands.Bot(command_prefix="/", intents=intents)
 
 
-@client.event
+@bot.event
 async def on_ready():
-    print(f"We have logged in as {client.user}")
+    print("Connected!")
+    try:
+        synced = await bot.tree.sync()
+        print(f"Synced {len(synced)} commands")
+    except Exception as e:
+        print(e)
 
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-
-    if message.content.startswith("$hello"):
-        await message.channel.send("Hello!")
+@bot.tree.command(name="foo")
+async def foo(interaction: discord.Interaction, arg: str):
+    await interaction.response.send_message(arg)
 
 
-client.run(
-    botToken,
-)
+bot.run(botToken)
